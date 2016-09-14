@@ -1,14 +1,12 @@
 function isHgDirectory() {
-  if(test-path ".git") {
-    return $false; #short circuit if git repo
-  }
-  
   if(test-path ".hg") {
     return $true;
   }
-  
-  
-  
+
+  if(test-path ".git") {
+    return $false; #short circuit if git repo
+  }
+
   # Test within parent dirs
   $checkIn = (Get-Item .).parent
   while ($checkIn -ne $NULL) {
@@ -19,7 +17,7 @@ function isHgDirectory() {
           $checkIn = $checkIn.parent
       }
     }
-    
+
     return $false
 }
 
@@ -49,8 +47,8 @@ function Get-HgStatus($getFileStatus=$true, $getBookmarkStatus=$true) {
 		$headCount = 0
 		hg heads $branch | foreach {
 			switch -regex ($_) {
-				'changeset:\s*(\S*)' 
-				{ 
+				'changeset:\s*(\S*)'
+				{
 					if ($commit -eq $matches[1]) { $behind=$false }
 					$headCount++
 					if ($headCount -gt 1) { $multipleHeads=$true }
@@ -60,9 +58,9 @@ function Get-HgStatus($getFileStatus=$true, $getBookmarkStatus=$true) {
 	}
 	else
 	{
-		   hg summary | foreach {   
+		   hg summary | foreach {
 		  switch -regex ($_) {
-			'parent: (\S*) ?(.*)' { $commit = $matches[1]; $tags = $matches[2].Replace("(empty repository)", "").Split(" ", [StringSplitOptions]::RemoveEmptyEntries) } 
+			'parent: (\S*) ?(.*)' { $commit = $matches[1]; $tags = $matches[2].Replace("(empty repository)", "").Split(" ", [StringSplitOptions]::RemoveEmptyEntries) }
 			'branch: ([\S ]*)' { $branch = $matches[1] }
 			'update: (\d+)' { $behind = $true }
 			'pmerge: (\d+) pending' { $behind = $true }
@@ -76,13 +74,13 @@ function Get-HgStatus($getFileStatus=$true, $getBookmarkStatus=$true) {
 				  '(\d+) unknown' { $untracked = $matches[1] }
 				  '(\d+) renamed' { $renamed = $matches[1] }
 				}
-			  } 
-			} 
-		  } 
+			  }
+			}
+		  }
 		}
 	}
-    
-    
+
+
 	if ($getBookmarkStatus)
 	{
 		$active = ""
@@ -115,25 +113,25 @@ function Get-HgStatus($getFileStatus=$true, $getBookmarkStatus=$true) {
 function Get-MqPatches($filter) {
   $applied = @()
   $unapplied = @()
-  
+
   hg qseries -v | % {
     $bits = $_.Split(" ")
     $status = $bits[1]
     $name = $bits[2]
-    
+
     if($status -eq "A") {
       $applied += $name
     } else {
       $unapplied += $name
     }
   }
-  
+
   $all = $unapplied + $applied
-  
+
   if($filter) {
     $all = $all | ? { $_.StartsWith($filter) }
   }
-  
+
   return @{
     "All" = $all;
     "Unapplied" = $unapplied;
