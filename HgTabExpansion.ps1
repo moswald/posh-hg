@@ -149,9 +149,9 @@ function PopulateHgCommands() {
 }
 
 function findBranchOrBookmarkOrTags($filter){
+    hgLocalBookmarks($filter)
     hgLocalBranches($filter)
 	hgLocalTags($filter)
-    hgLocalBookmarks($filter)
 }
 
 function hgLocalBranches($filter) {
@@ -181,20 +181,17 @@ function hgLocalTags($filter) {
 }
 
 function bookmarkName($bookmark) {
-    $split = $bookmark.Split(" ");
-        
     if($bookmark.StartsWith("*")) {
-        $split[1]
+      $bookmark.Split(" ")[1]
     }
     else{
-        $split[0]
+      $bookmark
     }
 }
 
 function hgLocalBookmarks($filter) {
   hg bookmarks --quiet | foreach {
-    if($_ -match "(\S+) .*") {
-      $bookmark = bookmarkName($matches[0])  
+    $bookmark = $_
       if($filter -and $bookmark.StartsWith($filter, "CurrentCultureIgnoreCase")) {
         $bookmark
       }
@@ -203,7 +200,6 @@ function hgLocalBookmarks($filter) {
       }
     }
   }
-}
 
 function hgRemoteBookmarks($filter) {
   hg incoming -B | foreach {
